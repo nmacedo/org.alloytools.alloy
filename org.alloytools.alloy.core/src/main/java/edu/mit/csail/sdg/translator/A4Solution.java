@@ -1667,14 +1667,14 @@ public final class A4Solution {
             rep.resultCNF(out);
             return null;
         }
+        PardinusBounds b;
+        if (solver.options().decomposed())
+            b = PardinusBounds.splitAtTemporal(bounds); // [electrum] split bounds on temporal
+        else
+            b = bounds;
         if (/* solver.options().solver()==SATFactory.ZChaffMincost || */ !solver.options().solver().incremental()) {
-            sol = solver.solve(fgoal, bounds);
+            sol = solver.solve(fgoal, b);
         } else {
-            PardinusBounds b;
-            if (solver.options().decomposed())
-                b = PardinusBounds.splitAtTemporal(bounds); // [electrum] split bounds on temporal
-            else
-                b = bounds;
             // [electrum] better handling of solving runtime errors
             try {
                 kEnumerator = new Peeker<Solution>(solver.solveAll(fgoal, b));
@@ -1686,6 +1686,8 @@ public final class A4Solution {
             } catch (InvalidUnboundedProblem e) {
                 Pos p = ((Expr) k2pos(e.node())).pos;
                 throw new ErrorAPI(p, "Invalid specification for complete backend.\n" + e.getMessage());
+            } catch (CapacityExceededException ex) {
+                throw TranslateAlloyToKodkod.rethrow(ex);
             }
             if (sol == null)
                 sol = kEnumerator.next();
