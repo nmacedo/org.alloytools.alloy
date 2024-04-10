@@ -134,12 +134,12 @@ public class CLI extends Env {
 
 		String filename = options._arguments().remove(0);
 		File file = IO.getFile(filename);
-		if (!file.isFile()) {
-			error("No such file %s", file);
-			return;
-		}
 		if (!file.canRead()) {
 			error("Cannot read file %s", file);
+			return;
+		}
+		if (file.isDirectory()) {
+			error("%s must be a file, not a directory", file);
 			return;
 		}
 
