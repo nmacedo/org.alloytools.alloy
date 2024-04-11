@@ -189,7 +189,8 @@ public class CLI extends Env {
 				int sequence = 0;
 				do {
 					repeat--;
-					System.out.println("repeat " + repeat);
+					if (!options.quiet())
+						System.out.println("repeat " + repeat);
 					CommandInfo info = new CommandInfo();
 					info.command = c;
 					info.sequence = sequence++;
@@ -197,7 +198,8 @@ public class CLI extends Env {
 					if (opt.solver.isTransformer())
 						info.cnf = rep.output;
 					answers.put(info, s);
-					System.out.println("answers " + answers.size());
+					if (!options.quiet())
+						System.out.println("answers " + answers.size());
 				} while (repeat >= 0 && s.isIncremental() && (s = s.next()).satisfiable());
 			}
 		}
@@ -211,7 +213,7 @@ public class CLI extends Env {
 			}
 
 		} else {
-			generate(world, answers, options.type(OutputType.table), out);
+			generate(world, answers, options.type(OutputType.table), out, options);
 
 			if (options.evaluator() && !answers.isEmpty()) {
 				evaluator(world, answers);
@@ -272,7 +274,7 @@ public class CLI extends Env {
 		return new FileOutputStream(file);
 	}
 
-	private void generate(CompModule world, Map<CommandInfo, A4Solution> s, OutputType type, OutputStream out)
+	private void generate(CompModule world, Map<CommandInfo, A4Solution> s, OutputType type, OutputStream out, ExecOptions options)
 			throws Exception {
 		try {
 			switch (type) {
@@ -285,7 +287,8 @@ public class CLI extends Env {
 					for (Map.Entry<CommandInfo, A4Solution> e : s.entrySet()) {
 						A4Solution solution = e.getValue();
 						CommandInfo cmdinfo = e.getKey();
-						pw.println(cmdinfo);
+						if (!options.quiet())
+							pw.println(cmdinfo);
 						pw.println(solution.toString());
 					}
 				}
@@ -296,15 +299,17 @@ public class CLI extends Env {
 					for (Map.Entry<CommandInfo, A4Solution> e : s.entrySet()) {
 						A4Solution solution = e.getValue();
 						CommandInfo cmdinfo = e.getKey();
-						
-						pw.println("---");
-						pw.printf("%-40s%s%n", "Command", cmdinfo.command);
-						pw.printf("%-40s%s%n", "Duration (ms)", cmdinfo.durationInMs);
-						pw.printf("%-40s%s%n", "Sequence", cmdinfo.sequence);
-						for ( ExprVar expr : solution.getAllSkolems()) {
-							Object eval = solution.eval(expr);
-							pw.printf("%-40s%s%n", expr.label, eval);
-							
+
+						if (!options.quiet()) {
+							pw.println("---");
+							pw.printf("%-40s%s%n", "Command", cmdinfo.command);
+							pw.printf("%-40s%s%n", "Duration (ms)", cmdinfo.durationInMs);
+
+							pw.printf("%-40s%s%n", "Sequence", cmdinfo.sequence);
+							for ( ExprVar expr : solution.getAllSkolems()) {
+								Object eval = solution.eval(expr);
+								pw.printf("%-40s%s%n", expr.label, eval);
+							}
 						}
 						pw.println(solution.toTable());
 					}
