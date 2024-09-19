@@ -444,7 +444,7 @@ implements KodkodSolver<PardinusBounds, ExtendedOptions>, TemporalSolver<Extende
 			List<int[]> res = new ArrayList<>();
 			// if the current prefix length cannot accommodate the iteration, return unsat
 			if ((!inst.infinite && inst.end + 1 > current_trace) || inst.start > current_trace)
-				return Collections.singletonList(new int[] {});
+				return Collections.singletonList(new int[]{});
 			// the end of the change/fix segment depends on whether infinite or not
 			int segment_end = inst.infinite ? current_trace : inst.end;
 			// unroll the temporal instance given the current prefix length and past op
@@ -468,44 +468,46 @@ implements KodkodSolver<PardinusBounds, ExtendedOptions>, TemporalSolver<Extende
 						throw new IllegalArgumentException("Cannot fix and change " + r);
 					else
 						pos = true;
-				TupleSet lower = translation.bounds().lowerBound(r);
-				IntSet vars = translation.primaryVariables(r);
-				opt.reporter().debug("Vars per state for " + r + ": " + vars.size() / current_trace);
-				opt.reporter().debug(
-						r + " has vars " + vars + " and upper " + translation.bounds().upperBound(r).indexView());
-				if (!vars.isEmpty() && !r.equals(TemporalTranslator.LOOP) && !r.equals(TemporalTranslator.STATE)
-						&& !r.equals(TemporalTranslator.PREFIX) && instance.tuples(r) != null) {
-					opt.reporter().debug(translation.bounds().upperBound(r).indexView() + " vs "
-							+ instance.tuples(r).indexView() + "");
-					int lit = vars.min();
-					for (IntIterator iter = translation.bounds().upperBound(r).indexView().iterator(); iter
-							.hasNext();) {
-						final int index = iter.next();
-						if (!lower.indexView().contains(index)) {
-							// this infers the state of a variable assuming that they are created state-wise
-							// and that each state has the same number of variables (since the bounds are
-							// the same of all trace, should be true)
-							if (!originalBounds.relations().contains(r)) {
-								int idx = (lit - vars.min()) % current_trace;
-								if (pos != null && idx >= inst.start && idx <= segment_end) {
-									if (!pos)
+				if (pos != null) {
+					TupleSet lower = translation.bounds().lowerBound(r);
+					IntSet vars = translation.primaryVariables(r);
+					opt.reporter().debug("Vars per state for " + r + ": " + vars.size() / current_trace);
+					opt.reporter().debug(
+							r + " has vars " + vars + " and upper " + translation.bounds().upperBound(r).indexView());
+					if (!vars.isEmpty() && !r.equals(TemporalTranslator.LOOP) && !r.equals(TemporalTranslator.STATE)
+							&& !r.equals(TemporalTranslator.PREFIX) && instance.tuples(r) != null) {
+						opt.reporter().debug(translation.bounds().upperBound(r).indexView() + " vs "
+								+ instance.tuples(r).indexView() + "");
+						int lit = vars.min();
+						for (IntIterator iter = translation.bounds().upperBound(r).indexView().iterator(); iter
+								.hasNext(); ) {
+							final int index = iter.next();
+							if (!lower.indexView().contains(index)) {
+								// this infers the state of a variable assuming that they are created state-wise
+								// and that each state has the same number of variables (since the bounds are
+								// the same of all trace, should be true)
+								if (!originalBounds.relations().contains(r)) {
+									int idx = (lit - vars.min()) % current_trace;
+									if (idx >= inst.start && idx <= segment_end) {
+										if (!pos)
+											notModel.add(instance.tuples(r).indexView().contains(index) ? -lit : lit);
+										else
+											res.add(new int[]{
+													instance.tuples(r).indexView().contains(index) ? lit : -lit});
+									} else if (idx < inst.start)
+										// if before change segment, fix variable
+										res.add(new int[]{instance.tuples(r).indexView().contains(index) ? lit : -lit});
+								} else {
+									if (inst.start > 0 || (pos != null && pos))
+										res.add(new int[]{instance.tuples(r).indexView().contains(index) ? lit : -lit});
+									if (pos != null && !pos)
 										notModel.add(instance.tuples(r).indexView().contains(index) ? -lit : lit);
-									else
-										res.add(new int[] {
-												instance.tuples(r).indexView().contains(index) ? lit : -lit });
-								} else if (idx < inst.start)
-									// if before change segment, fix variable
-									res.add(new int[] { instance.tuples(r).indexView().contains(index) ? lit : -lit });
-							} else {
-								if (inst.start > 0 || (pos != null && pos))
-									res.add(new int[] { instance.tuples(r).indexView().contains(index) ? lit : -lit });
-								if (pos != null && !pos)
-									notModel.add(instance.tuples(r).indexView().contains(index) ? -lit : lit);
+								}
+								lit++;
 							}
-							lit++;
 						}
+						opt.reporter().debug(notModel + "");
 					}
-					opt.reporter().debug(notModel + "");
 				}
 			}
 			opt.reporter().debug("New clause without loops");
