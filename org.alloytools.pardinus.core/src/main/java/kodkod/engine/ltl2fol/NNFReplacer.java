@@ -43,6 +43,7 @@ import kodkod.ast.NotFormula;
 import kodkod.ast.QuantifiedFormula;
 import kodkod.ast.RelationPredicate;
 import kodkod.ast.UnaryTempFormula;
+import kodkod.ast.operator.TemporalOperator;
 import kodkod.ast.visitor.AbstractReplacer;
 
 /**
@@ -266,8 +267,14 @@ public class NNFReplacer extends AbstractReplacer {
 		
 		if (negated) {
 			switch (tf.op()) {
-			case UNTIL: case RELEASES: case SINCE: case TRIGGERED:
-				return cache(tf,tf.left().accept(this).compose(tf.op(),tf.right().accept(this)));
+			case UNTIL:
+				return cache(tf,tf.left().accept(this).compose(TemporalOperator.RELEASES,tf.right().accept(this)));
+			case RELEASES:
+				return cache(tf,tf.left().accept(this).compose(TemporalOperator.UNTIL,tf.right().accept(this)));
+			case SINCE:
+				return cache(tf,tf.left().accept(this).compose(TemporalOperator.TRIGGERED,tf.right().accept(this)));
+			case TRIGGERED:
+				return cache(tf,tf.left().accept(this).compose(TemporalOperator.SINCE,tf.right().accept(this)));
 			default:
 				negated = !negated;
 				Formula temp1 = tf.left().accept(this);
