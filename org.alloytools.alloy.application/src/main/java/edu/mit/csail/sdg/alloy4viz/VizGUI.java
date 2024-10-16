@@ -1129,7 +1129,7 @@ public final class VizGUI implements ComponentListener {
         diagramsScrollPanels.setLayout(new BoxLayout(diagramsScrollPanels, BoxLayout.LINE_AXIS));
         for (int i = 0; i < texts.size(); i++) {
 
-            final JTextArea ta = OurUtil.textarea(texts.get(i), 10, 10, false, false);
+            final JTextArea ta = OurUtil.textarea(texts.get(i), 10, 10, false, wrap);
 
             try {
                 List<Entry<Integer,Integer>> dfs = new ArrayList<>();
