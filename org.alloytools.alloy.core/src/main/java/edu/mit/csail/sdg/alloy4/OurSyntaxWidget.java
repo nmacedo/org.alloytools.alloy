@@ -157,52 +157,7 @@ public final class OurSyntaxWidget {
                 module = null;
             }
         });
-        int modifier = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
-        this.pane.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, modifier), "line.begin");
-        this.pane.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, modifier + InputEvent.SHIFT_DOWN_MASK), "line.begin");
-        this.pane.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, modifier), "line.end");
-        this.pane.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, modifier + InputEvent.SHIFT_DOWN_MASK), "line.end");
-
-        this.pane.getActionMap().put("line.begin", new AbstractAction() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    int caretPosition = pane.getSelectionEnd();
-                    int startOfLine = Utilities.getRowStart(pane, caretPosition);
-                    if (isShifted(e)) {
-
-                        pane.setSelectionEnd(caretPosition);
-                        pane.setSelectionStart(startOfLine);
-                    } else {
-                        pane.setCaretPosition(startOfLine);
-                    }
-                } catch (Exception ee) {
-                    // ignore
-                }
-            }
-
-        });
-
-        this.pane.getActionMap().put("line.end", new AbstractAction() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    int caretPosition = pane.getSelectionStart();
-                    int endOfLine = Utilities.getRowEnd(pane, caretPosition);
-                    if (isShifted(e)) {
-
-                        pane.setSelectionEnd(endOfLine);
-                        pane.setSelectionStart(caretPosition);
-                    } else {
-                        pane.setCaretPosition(endOfLine);
-                    }
-                } catch (Exception ee) {
-                    // ignore
-                }
-            }
-        });
+        
         this.parent = parent;
         this.obj1 = obj1;
         this.obj2 = obj2;
